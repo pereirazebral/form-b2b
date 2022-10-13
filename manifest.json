@@ -1,7 +1,7 @@
 {
-  "vendor": "wepink",
-  "name": "app-name",
-  "version": "0.0.1",
+  "vendor": "impermarketb2b",
+  "name": "b2b-registration",
+  "version": "0.0.0",
   "builders": {
     "store": "0.x",
     "react": "3.x"
@@ -12,7 +12,8 @@
   "dependencies": {
     "vtex.store": "2.x",
     "vtex.styleguide": "9.x",
-    "vtex.css-handles": "1.x"
+    "vtex.css-handles": "1.x",
+    "vtex.b2b-cnae": "1.x"
   },
   "$schema": "https://raw.githubusercontent.com/vtex/node-vtex-api/master/gen/manifest.schema"
 }

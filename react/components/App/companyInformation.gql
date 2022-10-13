@@ -1,0 +1,43 @@
+query getCompanyInformation($cnpj: String) {
+  getCompanyInformation(cnpj: $cnpj) {
+    companyName
+    tradeName
+    email
+    ni
+    oppeningDate
+    mainCnae {
+      code
+      description
+    }
+    legalNature {
+      code
+      description
+    }
+    specialSituation
+    cadastralSituation {
+      code
+      date
+      motive
+    }
+    establishmentType
+    socialCapital
+    size
+    secondarieCnaes {
+      code
+      description
+    }
+    phoneNumbers {
+      ddd
+      number
+    }
+    address {
+      street
+      number
+      complement
+      cep
+      district
+      city
+      state
+    }
+  }
+}

@@ -1,5 +1,5 @@
 {
-    "garbe-app": {
-        "component": "GarbeApp"
+    "b2b-registration": {
+        "component": "App"
     }
 }

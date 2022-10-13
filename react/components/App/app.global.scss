@@ -1,0 +1,118 @@
+.b2b-registration{
+    .b2bRegistration__title{
+        margin: 0;
+        font-size: 3rem;
+        text-align: center;
+
+        @media(max-width:1023px){
+            font-size: 2rem;
+        }
+    }
+
+    .b2bRegistration__content{
+        display: flex;
+        justify-content: space-evenly;
+        padding: 50px 0 50px 0;
+        
+        @media(max-width:1023px){
+            flex-direction: column;
+        }
+
+        .b2bRegistration__sub__title{
+            margin: 0;
+            font-size: 2rem;
+
+            @media(max-width:1023px){
+                font-size: 1.2rem;
+            }
+        }
+
+        .b2bRegistration__form__container{
+            width: 500px;
+            padding: 30px;
+
+            @media(max-width:1023px){
+                width: 100%;
+                max-width: 500px;
+                padding: 16px;
+            }
+
+            .b2bRegistration__form__input{
+                .vtex-input-prefix__group {
+                    border: none;
+                    border-bottom: 2px solid #000;
+                    border-radius: 0;
+                    height: 2rem;
+
+                    &.b--danger{
+                        border-bottom: 2px solid #ff4c4c;
+                    }
+
+                    .vtex-styleguide-9-x-input{
+                        padding: 0 0 0 5px;
+                        font-weight: bold;
+                        font-size: 0.9rem;
+                    }
+                }
+            }
+
+            .b2bRegistration__form__button{
+
+                .vtex-button{
+
+                    .vtex-button__label{
+                        text-transform: none;
+                        font-weight: bold;
+                        font-size: 0.9rem;
+                    }
+                }
+            }
+        }
+
+        .b2bRegistration__video{
+            
+            width: 500px;
+            height: 400px;
+            
+            @media(max-width:1023px){
+                width: 100%;
+                padding: 20px 0 0 0;
+            }
+        }
+    }
+}
+
+.b2bRegistration__error__page{
+    padding: 50px 0;
+    
+    .b2bRegistration__error__page__svg{
+        width: 100px;
+    }
+
+    .b2bRegistration__error__page__title{
+        margin: 0;
+        font-size: 2.0rem;
+        padding: 20px 0 0 0 ;
+
+        @media(max-width:1023px){
+            font-size: 1.5rem;
+            text-align: center;
+        }
+    }
+
+    .b2bRegistration__error__page__description{
+        margin: 0;
+        font-size: 1rem;
+        padding: 20px 0 0 0 ;
+    }
+
+    .vtex-button{
+        margin: 20px 0 0 0;
+
+        .vtex-button__label{
+            text-transform: none;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+    }
+}

@@ -1,4 +1,7 @@
 .b2b-registration{
+
+    
+
     .b2bRegistration__title{
         margin: 0;
         font-size: 3rem;
@@ -116,3 +119,156 @@
         }
     }
 }
+
+.b2bRegistration__confirm__date__page{
+
+    .vtex-dropdown__container{
+        &.b--danger {
+            border-color: #ff4c4c;
+        }
+    }
+
+    .b2bRegistration__confirm__date__page__container{
+        @media(max-width:1023px){
+            flex-direction: column;
+        }
+    }
+
+    .b2bRegistration__confirm__date__page__title{
+        margin: 0;
+    }
+
+    .b2bRegistration__confirm__date__page__description {
+        margin: 0;
+        width: 450px;
+        padding: 10px 0 0 0;
+        color: #727273;
+
+        @media(max-width:1023px){
+            width: 100%;
+            text-align: center;
+        }
+
+        .b2bRegistration__confirm__date__page__description__highlight{
+            font-weight: bold;
+        }
+
+    }
+
+    .b2bRegistration__confirm__date__page__response__data{
+        
+        max-width: 25%;
+        @media(max-width: 1023px){
+            max-width: 100%;
+        }
+
+        .b2bRegistration__confirm__date__page__response__data__container{
+            background-color: #e2e2eb;
+            border-radius: 10px;
+            padding: 20px;
+
+            .b2bRegistration__confirm__date__page__response__data__label{
+                font-size: 0.9rem;
+                font-weight: bold;
+            }
+
+            .b2bRegistration__confirm__date__page__response__data__value{
+                margin: 0;
+                font-size: 0.9rem;
+                color: #727273;
+                font-weight: bold;
+                padding: 5px 0 0 0;
+            }
+        }
+    }
+
+    .b2bRegistration__confirm__date__page__form{
+        padding: 20px;
+        max-width: 30%;
+        @media(max-width: 1023px){
+            max-width: 100%;
+        }
+    }
+
+    .b2bRegistration__confirm__date__page__form__contact{
+        padding: 60px 20px 20px 20px;
+        max-width: 45%;
+
+        @media(max-width: 1023px){
+            max-width: 100%;
+            padding: 10px 20px 20px 20px;
+        }
+
+        .b2bRegistration__confirm__date__page__form__contact__container{
+            justify-content: space-between;
+        
+
+            .vtex-input-prefix__group {
+                border: none;
+                border-bottom: 1px solid #000;
+                border-radius: 0;
+                height: 2rem;
+                max-width: 250px;
+
+                @media(max-width: 1023px){
+                    max-width: 100%;
+                }
+
+                &.b--danger{
+                    border-bottom: 1px solid #ff4c4c;
+                }
+
+                .vtex-styleguide-9-x-input{
+                    padding: 0 0 0 5px;
+                    font-weight: bold;
+                    font-size: 0.9rem;
+                }
+            }
+
+            .b2bRegistration__confirm__date__checkbox__text{
+                color: #727273;
+                font-size: 1rem;
+
+                a{
+                    color: #000;
+                    font-weight: bold;
+                    text-decoration: none;
+                }
+            }
+
+            .vtex-checkbox__container,
+            .vtex-checkbox__inner-container,
+            .vtex-checkbox__box-wrapper,
+            .vtex-checkbox__input{
+                width: 2rem;
+                height: 2rem;
+
+                .vtex__icon-check {
+                    width: 18px;
+                    height: 18px;
+                }
+            }
+
+            .vtex-button{
+                width: 200px;
+
+                @media(max-width: 1023px){
+                    width: 100%;
+                }
+
+                .vtex-button__label{
+                    text-transform: none;
+                    font-weight: bold;
+                    font-size: 0.9rem;
+                }
+            }
+
+            .error{
+                color: #ff4c4c;
+                font-size: 0.9rem;
+                padding-top: 5px;
+            }
+        }
+    }
+}
+

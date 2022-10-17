@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import axios from "axios";
 import PropTypes from 'prop-types'
 import { useQuery } from 'react-apollo'
 import { useCssHandles } from 'vtex.css-handles'
-import { Input, Button, Spinner } from 'vtex.styleguide'
+import { Input, Button, Spinner, Dropdown, Checkbox, Alert } from 'vtex.styleguide'
 import companyInformationQuery from './companyInformation.gql'
 import './app.global.css'
 
@@ -20,11 +21,22 @@ const maskCNPJ = (value) => {
     return ''
 }
 
+const maskPhone = (value) => {
+    value = value.replace(/\D/g, '') // Remove tudo o que não é dígito
+    value = value.replace(/^(\d{2})(\d)/g, '($1) $2') // Coloca parênteses em volta dos dois primeiros dígitos
+    value = value.replace(/(\d)(\d{4})$/, '$1-$2') // Coloca hífen entre o quarto e o quinto dígitos
+  
+    return value
+}
+
 const App = ({
     title,
     videoURL,
     subTitle,
-    labelButton
+    labelButton,
+    step04Title,
+    step04Description,
+    step04DescriptionHighlight
 }) => {
 
     const CSS_HANDLES = [
@@ -41,7 +53,24 @@ const App = ({
         'b2bRegistration__error__page',
         'b2bRegistration__error__page__title',
         'b2bRegistration__error__page__description',
-        'b2bRegistration__error__page__svg'
+        'b2bRegistration__error__page__svg',
+        'b2bRegistration__confirm__date__page',
+        'b2bRegistration__confirm__date__page__title',
+        'b2bRegistration__confirm__date__page__description',
+        'b2bRegistration__confirm__date__page__container',
+        'b2bRegistration__confirm__date__page__description__highlight',
+        'b2bRegistration__confirm__date__page__response__data',
+        'b2bRegistration__confirm__date__page__response__data_ container',
+        'b2bRegistration__confirm__date__page__response__data__form__group',
+        'b2bRegistration__confirm__date__page__response__data__label',
+        'b2bRegistration__confirm__date__page__response__data__value',
+        'b2bRegistration__confirm__date__page__form',
+        'b2bRegistration__confirm__date__page__form__container',
+        'b2bRegistration__confirm__date__page__form__contact',
+        'b2bRegistration__confirm__date__page__form__contact__container',
+        'b2bRegistration__confirm__date__checkbox__text'
+
+
     ]
 
     const { handles } = useCssHandles(CSS_HANDLES)
@@ -53,6 +82,7 @@ const App = ({
     const [responseData, setResponseData] = useState(null)
     const [alertTitle, setAlertTitle ] = useState('')
     const [alertDescription, setAlertDescription ] = useState('')
+    
     const handleOnChange = (e) => {
         const {target} = e
         const value = target.value.replace(/\D/g, '')
@@ -93,6 +123,12 @@ const App = ({
                 setStep={setStep}
                 setAlertTitle={setAlertTitle}
                 setAlertDescription={setAlertDescription}/>}
+
+            { step === 4 && <Step04 step04Title={step04Title}
+                step04Description={step04Description}
+                step04DescriptionHighlight={step04DescriptionHighlight}
+                handles={handles}
+                responseData={responseData}/>}
             
         </>
     )
@@ -224,19 +260,622 @@ const Step03 = ({
     )
 }
 
+const Step04 = ( {
+    step04Title,
+    step04Description,
+    step04DescriptionHighlight,
+    handles,
+    responseData
+}) => { 
+    const [activitySectorOptions, setActivitySectorOptions] = useState([])
+    const [entityTypeOptions, setEntityTypeOptions] = useState([])
+    const [taxRegimeOptions, setTaxRegimeOptions] = useState([])
+    const [useTypeOptios, setUseTypeOptions] = useState()
+    const [cnpj, setCNPJ ] = useState('')
+    const [addressFormat, setAddressFormat] = useState('')
+    const [activitySector, serActivitySector] = useState('')
+    const [entityType, setEntityType] = useState('')
+    const [pCredSN, setPCredSN] = useState('')
+    const [taxRegime, setTaxRegime] = useState('')
+    const [useType, setUseType] = useState('')
+    const [usagePurpose, setUsagePurpose] = useState('')
+    const [emailState, setEmailState] = useState('')
+    const [businessPhone, setBusinessPhone] = useState('')
+    const [firstName, setFirstName] = useState('')
+    const [isOfAge, setIsOfAge] = useState(false)
+    const [isNewsletterOptIn, setIsNewsletterOptIn] = useState(false)
+    const [formInValid, setFormInValid] = useState({
+        activitySector: false,
+        entityType: false,
+        taxRegime: false,
+        useType: false,
+        emailState: false,
+        businessPhone: false,
+        firstName: false,
+        isOfAge: false
+    })
+    const [loadingRequest, setLoadingRequest] = useState(false)
+    const [isAlert, setIsAlert] = useState(false)
+    const [alertType, setAlertType] = useState('')
+    const [alertMessage, setAlertMessage] = useState('')
+
+    const formatCNPJ = (value) => {
+        let a = value.substring(0, 2)
+        let b = value.substring(12, 14)
+        let c = '.xxx.xx/xxxx-'
+        return `${a}${c}${b}`
+    }
+
+    const formatAddress = (address) => {
+        
+        let street = address?.street || ''
+        let number = address?.number || ''
+        
+
+        return `${street}, ${number}, ********`
+    }
+
+    const getSAEntity = () => {
+        const fields = 'displayName'
+        axios
+        .get(`/api/dataentities/SA/search?_fields=${fields}`)
+        .then(function a(response) {
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            const { status, data } = response
+            if (status === 200 && data && data.length > 0) {
+                let listFortmat = []
+                data.map((item) => {
+                    listFortmat.push({value: item.displayName, label: item.displayName})
+                })
+                setActivitySectorOptions(listFortmat)
+            }
+      })
+      .catch(function b(e) {
+        console.error("getSAEntity ::: => ", e)
+      })
+    }
+
+    const getTEEntity = () => {
+        const fields = 'displayName'
+        axios
+        .get(`/api/dataentities/TE/search?_fields=${fields}`)
+        .then(function a(response) {
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            const { status, data } = response
+            if (status === 200 && data && data.length > 0) {
+                let listFortmat = []
+                data.map((item) => {
+                    listFortmat.push({value: item.displayName, label: item.displayName})
+                })
+                setEntityTypeOptions(listFortmat)
+            }
+      })
+      .catch(function b(e) {
+        console.error("getTEEntity ::: => ", e)
+      })
+    }
+
+    const getTRTEntity = () => {
+        const fields = 'displayName'
+        axios
+        .get(`/api/dataentities/RT/search?_fields=${fields}`)
+        .then(function a(response) {
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            const { status, data } = response
+            if (status === 200 && data && data.length > 0) {
+                let listFortmat = []
+                data.map((item) => {
+                    listFortmat.push({value: item.displayName, label: item.displayName})
+                })
+                setTaxRegimeOptions(listFortmat)
+            }
+      })
+      .catch(function b(e) {
+        console.error("getTRTEntity ::: => ", e)
+      })
+    }
+
+    const getTUEntity = () => {
+        const fields = 'displayName'
+        axios
+        .get(`/api/dataentities/TU/search?_fields=${fields}`)
+        .then(function a(response) {
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            const { status, data } = response
+            if (status === 200 && data && data.length > 0) {
+                let listFortmat = []
+                data.map((item) => {
+                    listFortmat.push({value: item.displayName, label: item.displayName})
+                })
+                setUseTypeOptions(listFortmat)
+            }
+      })
+      .catch(function b(e) {
+        console.error("getTUEntity ::: => ", e)
+      })
+    }
+
+
+    const { ni, address , tradeName, email, phoneNumbers, companyName } = responseData
+
+    useEffect(() => {
+       getSAEntity()
+       getTEEntity()
+       getTRTEntity()
+       getTUEntity()
+       setAddressFormat(formatAddress(address))
+       setCNPJ(formatCNPJ(ni))
+       setEmailState(email || '')
+       setBusinessPhone(`${phoneNumbers[0]?.ddd || ''}${phoneNumbers[0]?.number|| ''}`)
+    },[])
+
+    const resetFormValid = () => {
+        const newFormValid ={
+            activitySector: false,
+            entityType: false,
+            taxRegime: false,
+            useType: false,
+            emailState: false,
+            businessPhone: false,
+            firstName: false,
+            isOfAge: false
+        }
+
+        setFormInValid({...newFormValid})
+    }
+    const onChangeInput = (e) => {
+        resetFormValid()
+        const { name, value } = e
+        switch (name) {
+            case 'activitySector':
+                serActivitySector(value)
+                break
+
+            case 'entityType':
+                setEntityType(value)
+                break
+
+            case 'pCredSN':
+                setPCredSN(value.replace(/\D/g, ''))
+                break
+
+            case 'taxRegime':
+                setTaxRegime(value)
+                break
+            
+            case 'useType':
+                setUseType(value)
+                break
+
+            case 'usagePurpose':
+                setUsagePurpose(value)
+                break
+
+            case 'firstName':
+                setFirstName(value)
+                break
+            
+            case 'email':
+                setEmailState(value)
+                break
+
+            case 'businessPhone':
+                setBusinessPhone(value.replace(/\D/g, ''))
+                break
+
+            case 'isOfAge':
+                setIsOfAge(!isOfAge)
+                break
+
+            case 'isNewsletterOptIn':
+                setIsNewsletterOptIn(!isNewsletterOptIn)
+                break
+
+            default:
+                console.error('Name não encontrado')
+        }
+    }
+
+    const formatObjectCL = () => {
+        const newCL = {
+            isCorporate: true,
+            firstName,
+            corporateDocument: ni,
+            corporateName: companyName,
+            tradeName,
+            stateRegistration: '', //VERIFICAR
+            businessPhone,
+            email: emailState,
+            homePhone: businessPhone, //VERIFICAR
+            activitySector,
+            entityType,
+            pCredSN,
+            taxRegime,
+            useType,
+            usagePurpose,
+            isNewsletterOptIn,
+            isOfAge
+        }
+
+        return newCL
+    }
+
+    const formatObjectAD = (userId) => {
+        const newAD = {
+            postalCode: address?.cep || '',
+            addressName: 'Comercial',
+            street: address?.street || '',
+            neighborhood: address?.district || '',
+            city: address?.city || '',
+            state:  address?.state || '',
+            complement: address?.complement || '',
+            number: `${phoneNumbers[0]?.ddd || ''}${phoneNumbers[0]?.number|| ''}`,
+            userId: userId
+        }
+
+        return newAD
+    }
+   
+    const handleOnClick = () => {
+        resetFormValid()
+        if(formValid()){
+            setLoadingRequest(true)
+            postDataCL()
+        }
+    }
+
+    const formValid = () => {
+        
+        let newFormInValid = formInValid
+        let result = true
+
+        if(activitySector === ''){
+            newFormInValid.activitySector = true
+            result = false
+        }
+
+        if(entityType === ''){
+            newFormInValid.entityType = true
+            result = false
+        }
+
+        if(taxRegime === ''){
+            newFormInValid.taxRegime = true
+            result = false
+        }
+
+        if(useType === ''){
+            newFormInValid.useType = true
+            result = false
+        }
+
+        if(firstName === ''){
+            newFormInValid.firstName = true
+            result = false
+        }
+
+        if(emailState === ''){
+            newFormInValid.emailState = true
+            result = false
+        }
+
+        if(businessPhone === ''){
+            newFormInValid.businessPhone = true
+            result = false
+        }
+        if(!isOfAge){
+            newFormInValid.isOfAge = true
+            result = false
+        }
+
+        setFormInValid({...newFormInValid})
+        return result
+    }
+
+    // CL
+    const postDataCL = () => {
+        
+        axios
+        .post(`/api/dataentities/CL/documents`, formatObjectCL())
+        .then(function a(response) {
+            
+            const { status, data } = response;
+            if (status === 201 && data) {
+                const userId = data?.DocumentId || ''
+                postDataAD(userId)  
+            }else {
+                setIsAlert(true);
+                setAlertType('warning');
+                setAlertMessage('Ops. Algo deu errado, tente novamente mais tarde.');
+            }
+        })
+        .catch(function b(error) {
+            const { response } = error
+            const { data, status } = response
+            console.error(response)
+            setIsAlert(true);
+            setAlertType('error');
+            if(status === 400){
+                setAlertMessage('O e-mail informado já possui um cadastro.');
+            }else{
+                setAlertMessage(data?.response?.data?.Message || 'Ocorreu um erro no sistema, tente novamente mais tarde.');
+            }
+            setLoadingRequest(false);
+        })
+    }
+
+    // AD
+    const postDataAD = (userId) => {
+        
+        axios
+            .post(`/api/dataentities/AD/documents`, formatObjectAD(userId))
+            .then(function a(response) {
+                const { status, data } = response;
+                if (status === 201 && data) {
+                    setIsAlert(true);
+                    setAlertType('success');
+                    setAlertMessage('Suas informações foram enviadas com sucesso.');
+                }else {
+                    setIsAlert(true);
+                    setAlertType(warning);
+                    setAlertMessage('Ops. Algo deu errado, tente novamente mais tarde.');
+                }
+            })
+            .catch(function b(error) {
+                const { response } = error
+                const { data } = response
+                console.error(response)
+                setIsAlert(true);
+                setAlertType('error');
+                setAlertMessage(data?.Message || 'Ocorreu um erro no sistema, tente novamente mais tarde.');
+            })
+            .finally(function() { setLoadingRequest(false)});
+    }
+    
+    return(
+        <section className={`b2bRegistration__confirm__date__page flex flex-column items-center justify-center ${handles.b2bRegistration__confirm__date__page}`}> 
+            <h2 className={`b2bRegistration__confirm__date__page__title ${handles.b2bRegistration__confirm__date__page__title}`}>{step04Title}</h2>
+            <p className={`b2bRegistration__confirm__date__page__description ${handles.b2bRegistration__confirm__date__page__description}`}>
+                {step04Description} 
+                <span className={`b2bRegistration__confirm__date__page__description__highlight ${handles.b2bRegistration__confirm__date__page__description__highlight}}`}>{step04DescriptionHighlight}</span>
+            </p>
+
+            <section className={`b2bRegistration__confirm__date__page__container flex w-100 pt7 ${handles.b2bRegistration__confirm__date__page__container}`}>
+                <section className={`b2bRegistration__confirm__date__page__response__data flex w-100 ${handles.b2bRegistration__confirm__date__page__response__data}`}>
+                    <section className={`b2bRegistration__confirm__date__page__response__data__container flex flex-column w-100 ${handles.b2bRegistration__confirm__date__page__response__data__container}`}>
+                        <div className={`b2bRegistration__confirm__date__page__response__data__form__group ${handles.b2bRegistration__confirm__date__page__response__data__form__group}`}>
+                            <label className={`b2bRegistration__confirm__date__page__response__data__label ${handles.b2bRegistration__confirm__date__page__response__data__label}`}>CNPJ</label>
+                            <p className={`b2bRegistration__confirm__date__page__response__data__value ${handles.b2bRegistration__confirm__date__page__response__data__value}`}>{cnpj}</p>
+                        </div>
+
+                        <div className={`b2bRegistration__confirm__date__page__response__data__form__group mt5 ${handles.b2bRegistration__confirm__date__page__response__data__form__group}`}>
+                            <label className={`b2bRegistration__confirm__date__page__response__data__label ${handles.b2bRegistration__confirm__date__page__response__data__label}`}>Incrição estadual</label>
+                            <p className={`b2bRegistration__confirm__date__page__response__data__value ${handles.b2bRegistration__confirm__date__page__response__data__value}`}>{''}</p>
+                        </div>
+
+                        <div className={`b2bRegistration__confirm__date__page__response__data__form__group mt5 ${handles.b2bRegistration__confirm__date__page__response__data__form__group}`}>
+                            <label className={`b2bRegistration__confirm__date__page__response__data__label ${handles.b2bRegistration__confirm__date__page__response__data__label}`}>Nome fanstasia</label>
+                            <p className={`b2bRegistration__confirm__date__page__response__data__value ${handles.b2bRegistration__confirm__date__page__response__data__value}`}>{tradeName || ''}</p>
+                        </div>
+
+                        <div className={`b2bRegistration__confirm__date__page__response__data__form__group mt5 ${handles.b2bRegistration__confirm__date__page__response__data__form__group}`}>
+                            <label className={`b2bRegistration__confirm__date__page__response__data__label ${handles.b2bRegistration__confirm__date__page__response__data__label}`}>Cep</label>
+                            <p className={`b2bRegistration__confirm__date__page__response__data__value ${handles.b2bRegistration__confirm__date__page__response__data__value}`}>{address?.cep || ''}</p>
+                        </div>
+
+                        <div className={`b2bRegistration__confirm__date__page__response__data__form__group mt5 ${handles.b2bRegistration__confirm__date__page__response__data__form__group}`}>
+                            <label className={`b2bRegistration__confirm__date__page__response__data__label ${handles.b2bRegistration__confirm__date__page__response__data__label}`}>Endereço</label>
+                            <p className={`b2bRegistration__confirm__date__page__response__data__value ${handles.b2bRegistration__confirm__date__page__response__data__value}`}>{addressFormat}</p>
+                        </div>
+
+                        <div className={`b2bRegistration__confirm__date__page__response__data__form__group mt5 ${handles.b2bRegistration__confirm__date__page__response__data__form__group}`}>
+                            <label className={`b2bRegistration__confirm__date__page__response__data__label ${handles.b2bRegistration__confirm__date__page__response__data__label}`}address>Bairro</label>
+                            <p className={`b2bRegistration__confirm__date__page__response__data__value ${handles.b2bRegistration__confirm__date__page__response__data__value}`}>{address?.district || ''}</p>
+                        </div>
+
+                        <div className={`b2bRegistration__confirm__date__page__response__data__form__group flex mt5 ${handles.b2bRegistration__confirm__date__page__response__data__form__group}`}>
+                            <div className='pr5'>
+                                <label className={`b2bRegistration__confirm__date__page__response__data__label ${handles.b2bRegistration__confirm__date__page__response__data__label}`}>Cidade</label>
+                                <p className={`b2bRegistration__confirm__date__page__response__data__value ${handles.b2bRegistration__confirm__date__page__response__data__value}`}>{address?.city || ''}</p>
+                            </div>
+                            <div>
+                                <label className={`b2bRegistration__confirm__date__page__response__data__label ${handles.b2bRegistration__confirm__date__page__response__data__label}`}>Estado</label>
+                                <p className={`b2bRegistration__confirm__date__page__response__data__value ${handles.b2bRegistration__confirm__date__page__response__data__value}`}>{address?.state || ''}</p>
+                            </div>
+                        </div>
+
+                    </section>
+                </section>
+                
+                <section className={`b2bRegistration__confirm__date__page__form flex w-100 ${handles.b2bRegistration__confirm__date__page__form}`}>
+                    <section className={`b2bRegistration__confirm__date__page__form__container flex flex-column w-100 ${handles.b2bRegistration__confirm__date__page__form__container}`}>
+                        
+                        {/* activitySector */}
+                        <section className="mb6">
+                            <Dropdown
+                                id="activitySector"
+                                name="activitySector"
+                                placeholder='Setor de atividade'
+                                options={activitySectorOptions}
+                                label='Setor de atividade'
+                                value={activitySector}
+                                onChange={(e) => onChangeInput(e.target)}
+                                errorMessage={formInValid.activitySector && 'Campo obrigatório.'}
+                                disabled={loadingRequest}/>
+                        </section>
+
+                        {/* entityType */}
+                        <section className="mb6">
+                            <Dropdown
+                                id="entityType"
+                                name="entityType"
+                                placeholder='Tipo de atividade'
+                                options={entityTypeOptions}
+                                label='Tipo de atividade'
+                                value={entityType}
+                                onChange={(e) => onChangeInput(e.target)}
+                                errorMessage={formInValid.entityType && 'Campo obrigatório.'}
+                                disabled={loadingRequest}/>
+                        </section>
+
+                        {/* pCredSN */}
+                        <section className='mb6'>
+                            <Input id="pCredSN"
+                                name="pCredSN"
+                                type="phone"
+                                label='Alíquota de ICMS'
+                                value={pCredSN}
+                                onChange={(e) => onChangeInput(e.target)}
+                                readOnly={loadingRequest}/>
+                        </section>
+
+                        {/* taxRegime */}
+                        <section className="mb6">
+                            <Dropdown
+                                id="taxRegime"
+                                name="taxRegime"
+                                placeholder='Regime de tributação'
+                                options={taxRegimeOptions}
+                                label='Regime de tributação'
+                                value={taxRegime}
+                                onChange={(e) => onChangeInput(e.target)}
+                                errorMessage={formInValid.taxRegime && 'Campo obrigatório.'}
+                                disabled={loadingRequest}/>
+                        </section>
+
+                        {/* useType */}
+                        <section className="mb6">
+                            <Dropdown
+                                id="useType"
+                                name="useType"
+                                placeholder='Tipo de Uso'
+                                options={useTypeOptios}
+                                label='Tipo de Uso'
+                                value={useType}
+                                onChange={(e) => onChangeInput(e.target)}
+                                errorMessage={formInValid.useType && 'Campo obrigatório.'}
+                                disabled={loadingRequest}/>
+                        </section>
+
+                        {/* usagePurpose */}
+                        <section className='mb6'>
+                            <Input id="usagePurpose"
+                                name="usagePurpose"
+                                type="text"
+                                label='Propósito de uso'
+                                value={usagePurpose}
+                                onChange={(e) => onChangeInput(e.target)}
+                                readOnly={loadingRequest}/>
+                        </section>
+                    </section>
+                </section>
+
+                <section className={`b2bRegistration__confirm__date__page__form__contact flex flex-column w-100 ${handles.b2bRegistration__confirm__date__page__form__contact}`}>
+                    <section className={`b2bRegistration__confirm__date__page__form__contact__container flex flex-column w-100 ${handles.b2bRegistration__confirm__date__page__form__contact__container}`}>
+                        {/* firstName */}
+                        <section className='mb6'>
+                            <Input id="firstName"
+                                name="firstName"
+                                type="text"
+                                value={firstName || ''}
+                                onChange={(e) => onChangeInput(e.target)}
+                                placeholder='Nome do contato'
+                                errorMessage={formInValid.firstName && 'Campo obrigatório.'}
+                                readOnly={loadingRequest}/>
+                        </section>
+
+                        {/* email */}
+                        <section className='mb6'>
+                            <Input id="email"
+                                name="email"
+                                value={emailState}
+                                type="email"
+                                onChange={(e) => onChangeInput(e.target)}
+                                placeholder='E-mail'
+                                errorMessage={formInValid.email && 'Campo obrigatório.'}
+                                readOnly={loadingRequest}/>
+                        </section>
+
+                        {/* businessPhone */}
+                        <section className='mb6'>
+                            <Input id="businessPhone"
+                                name="businessPhone"
+                                type="phone"
+                                value={maskPhone(businessPhone || '')}
+                                onChange={(e) => onChangeInput(e.target)}
+                                maxLength={15}
+                                placeholder='Telefone'
+                                errorMessage={formInValid.businessPhone && 'Campo obrigatório.'}
+                                readOnly={loadingRequest}/>
+                        </section>
+
+                         {/* isOfAge */}
+                         <section className='mt8 mb6 flex flex-column'>
+                            <div className='flex'>
+                                <Checkbox
+                                    checked={isOfAge}
+                                    id="isOfAge"
+                                    name='isOfAge'
+                                    onChange={(e) => onChangeInput(e.target)}
+                                    value={isOfAge}
+                                    disabled={loadingRequest}/>
+                                <span className={`b2bRegistration__confirm__date__checkbox__text pl3`}>Confirmo ser maior de 18(dezoito) anos e que todos os dados informados acima são veridicos. Ainda confirmo que li e concordo com os <a href='/'>Termos de uso</a> e com a <a href='/'>Política de Privacidade</a>.</span>
+                            </div>
+                            {formInValid.isOfAge && <span className='error'>É necessário confirmar as informações acima.</span>}
+                         </section>
+
+                         {/* isNewsletterOptIn */}
+                         <section className='mb6 flex'>
+                            <Checkbox
+                                checked={isNewsletterOptIn}
+                                id="isNewsletterOptIn"
+                                name='isNewsletterOptIn'
+                                onChange={(e) => onChangeInput(e.target)}
+                                value={isNewsletterOptIn}
+                                disabled={loadingRequest}/>
+                            <span className={`b2bRegistration__confirm__date__checkbox__text pl3`}>Autorizo o recebimento por e-mail e/ou celular, de conteúdos publicitários e promocionas, além de comunicados em geral vindos da Impermarket B2B e seus representantes.</span>
+                         </section>
+
+                         {/* request */}
+                         <section className='mb6 mt6'>
+                            <Button onClick={() => handleOnClick()}
+                                isLoading={loadingRequest}>
+                                Enviar para analise
+                            </Button>
+                         </section>
+                    </section>
+                    
+                    {isAlert && 
+                        <Alert type={alertType}>
+                            {alertMessage}
+                        </Alert>
+                    }
+                    
+                </section>
+            </section>
+
+        </section>
+    )
+}
 
 App.propTypes = {
     title: PropTypes.string,
     videoURL: PropTypes.string,
     subTitle: PropTypes.string,
-    labelButton: PropTypes.string
+    labelButton: PropTypes.string,
+    step04Title: PropTypes.string,
+    step04Description: PropTypes.string,
+    step04DescriptionHighlight: PropTypes.string
 }
 
 App.defaultProps = {
     title: 'Faça parte do nosso ecosistema',
     videoURL: 'https://www.youtube.com/embed/8Gsox9fDT_s',
     subTitle: 'Criar meu acesso',
-    labelButton: 'Iniciar cadastro >'
+    labelButton: 'Iniciar cadastro >',
+    step04Title: 'Confirmação de dados de acesso',
+    step04Description: 'Para sua segurança na nova plataforma, precisamos que você confirme alguns dados. Ao confirmar os dados, ',
+    step04DescriptionHighlight: 'você receberá um e-mail para cadastrar uma nova senha.'
 }
 
 App.schema = {
@@ -265,6 +904,21 @@ App.schema = {
             title: 'Sub Título',
             type: 'string',
             default: 'Criar meu acesso'
+        },
+        step04Title: {
+            title: 'Confirmação título',
+            type: 'string',
+            default: 'Confirmação de dados de acesso'
+        },
+        step04Description: {
+            title: 'Confirmação descrição',
+            type: 'string',
+            default: 'Para sua segurança na nova plataforma, precisamos que você confirme alguns dados. Ao confirmar os dados, '
+        },
+        step04DescriptionHighlight: {
+            title: 'Confirmação descrição destaque',
+            type: 'string',
+            default: 'você receberá um e-mail para cadastrar uma nova senha.'
         },
     }
 }

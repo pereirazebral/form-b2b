@@ -188,6 +188,14 @@
         @media(max-width: 1023px){
             max-width: 100%;
         }
+
+        .b--danger {
+            border-color: #ff4c4c;
+        }
+
+        .vtex-checkbox__label{
+            font-size: 0.9rem;
+        }
     }
 
     .b2bRegistration__confirm__date__page__form__contact{

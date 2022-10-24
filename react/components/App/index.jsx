@@ -60,7 +60,7 @@ const App = ({
         'b2bRegistration__confirm__date__page__container',
         'b2bRegistration__confirm__date__page__description__highlight',
         'b2bRegistration__confirm__date__page__response__data',
-        'b2bRegistration__confirm__date__page__response__data_ container',
+        'b2bRegistration__confirm__date__page__response__data_container',
         'b2bRegistration__confirm__date__page__response__data__form__group',
         'b2bRegistration__confirm__date__page__response__data__label',
         'b2bRegistration__confirm__date__page__response__data__value',
@@ -281,18 +281,26 @@ const Step04 = ( {
     const [usagePurpose, setUsagePurpose] = useState('')
     const [emailState, setEmailState] = useState('')
     const [businessPhone, setBusinessPhone] = useState('')
+    const [homePhone, setHomePhone] = useState('')
     const [firstName, setFirstName] = useState('')
+    const [lastName, setLastName] = useState('')
     const [isOfAge, setIsOfAge] = useState(false)
     const [isNewsletterOptIn, setIsNewsletterOptIn] = useState(false)
+    const [tradeNameState, setTradeNameState] = useState('')
+    const [stateRegistration, setStateRegistration] = useState('')
+    const [stateRegistrationIsent, setStateRegistrationIsent] = useState(false)
     const [formInValid, setFormInValid] = useState({
         activitySector: false,
         entityType: false,
         taxRegime: false,
         useType: false,
         emailState: false,
-        businessPhone: false,
+        homePhone: false,
         firstName: false,
-        isOfAge: false
+        lastName: false,
+        isOfAge: false,
+        tradeNameState: false,
+        stateRegistration: false
     })
     const [loadingRequest, setLoadingRequest] = useState(false)
     const [isAlert, setIsAlert] = useState(false)
@@ -407,6 +415,8 @@ const Step04 = ( {
        setCNPJ(formatCNPJ(ni))
        setEmailState(email || '')
        setBusinessPhone(`${phoneNumbers[0]?.ddd || ''}${phoneNumbers[0]?.number|| ''}`)
+       setTradeNameState(tradeName || '')
+
     },[])
 
     const resetFormValid = () => {
@@ -416,9 +426,12 @@ const Step04 = ( {
             taxRegime: false,
             useType: false,
             emailState: false,
-            businessPhone: false,
+            homePhone: false,
             firstName: false,
-            isOfAge: false
+            lastName: false,
+            isOfAge: false,
+            tradeNameState: false,
+            stateRegistration: false
         }
 
         setFormInValid({...newFormValid})
@@ -454,13 +467,17 @@ const Step04 = ( {
             case 'firstName':
                 setFirstName(value)
                 break
+
+            case 'lastName':
+                setLastName(value)
+                break
             
             case 'email':
                 setEmailState(value)
                 break
 
-            case 'businessPhone':
-                setBusinessPhone(value.replace(/\D/g, ''))
+            case 'homePhone':
+                setHomePhone(value.replace(/\D/g, ''))
                 break
 
             case 'isOfAge':
@@ -469,6 +486,14 @@ const Step04 = ( {
 
             case 'isNewsletterOptIn':
                 setIsNewsletterOptIn(!isNewsletterOptIn)
+                break
+            
+            case 'tradeName':
+                setTradeNameState(value)
+                break
+
+            case 'stateRegistration':
+                setStateRegistration(value)
                 break
 
             default:
@@ -480,13 +505,14 @@ const Step04 = ( {
         const newCL = {
             isCorporate: true,
             firstName,
+            lastName,
             corporateDocument: ni,
             corporateName: companyName,
-            tradeName,
-            stateRegistration: '', //VERIFICAR
+            tradeName: tradeNameState,
+            stateRegistration: stateRegistrationIsent? 'Insento' : stateRegistration,
             businessPhone,
             email: emailState,
-            homePhone: businessPhone, //VERIFICAR
+            homePhone,
             activitySector,
             entityType,
             pCredSN,
@@ -554,17 +580,32 @@ const Step04 = ( {
             result = false
         }
 
+        if(lastName === ''){
+            newFormInValid.lastName = true
+            result = false
+        }
+
         if(emailState === ''){
             newFormInValid.emailState = true
             result = false
         }
 
-        if(businessPhone === ''){
-            newFormInValid.businessPhone = true
+        if(homePhone === ''){
+            newFormInValid.homePhone = true
             result = false
         }
         if(!isOfAge){
             newFormInValid.isOfAge = true
+            result = false
+        }
+
+        if(tradeNameState === ''){
+            newFormInValid.tradeNameState = true
+            result = false
+        }
+
+        if(stateRegistration === '' && !stateRegistrationIsent){
+            newFormInValid.stateRegistration = true
             result = false
         }
 
@@ -631,7 +672,14 @@ const Step04 = ( {
             })
             .finally(function() { setLoadingRequest(false)});
     }
-    
+
+    const handleChangeStateRegistrationIsent = () => {
+        if (!stateRegistrationIsent) {
+            setStateRegistration('')
+        }
+        setStateRegistrationIsent(!stateRegistrationIsent)
+    }
+
     return(
         <section className={`b2bRegistration__confirm__date__page flex flex-column items-center justify-center ${handles.b2bRegistration__confirm__date__page}`}> 
             <h2 className={`b2bRegistration__confirm__date__page__title ${handles.b2bRegistration__confirm__date__page__title}`}>{step04Title}</h2>
@@ -648,14 +696,14 @@ const Step04 = ( {
                             <p className={`b2bRegistration__confirm__date__page__response__data__value ${handles.b2bRegistration__confirm__date__page__response__data__value}`}>{cnpj}</p>
                         </div>
 
-                        <div className={`b2bRegistration__confirm__date__page__response__data__form__group mt5 ${handles.b2bRegistration__confirm__date__page__response__data__form__group}`}>
+                        {/* <div className={`b2bRegistration__confirm__date__page__response__data__form__group mt5 ${handles.b2bRegistration__confirm__date__page__response__data__form__group}`}>
                             <label className={`b2bRegistration__confirm__date__page__response__data__label ${handles.b2bRegistration__confirm__date__page__response__data__label}`}>Incrição estadual</label>
                             <p className={`b2bRegistration__confirm__date__page__response__data__value ${handles.b2bRegistration__confirm__date__page__response__data__value}`}>{''}</p>
-                        </div>
+                        </div> */}
 
                         <div className={`b2bRegistration__confirm__date__page__response__data__form__group mt5 ${handles.b2bRegistration__confirm__date__page__response__data__form__group}`}>
-                            <label className={`b2bRegistration__confirm__date__page__response__data__label ${handles.b2bRegistration__confirm__date__page__response__data__label}`}>Nome fanstasia</label>
-                            <p className={`b2bRegistration__confirm__date__page__response__data__value ${handles.b2bRegistration__confirm__date__page__response__data__value}`}>{tradeName || ''}</p>
+                            <label className={`b2bRegistration__confirm__date__page__response__data__label ${handles.b2bRegistration__confirm__date__page__response__data__label}`}>Razão Social</label>
+                            <p className={`b2bRegistration__confirm__date__page__response__data__value ${handles.b2bRegistration__confirm__date__page__response__data__value}`}>{companyName || ''}</p>
                         </div>
 
                         <div className={`b2bRegistration__confirm__date__page__response__data__form__group mt5 ${handles.b2bRegistration__confirm__date__page__response__data__form__group}`}>
@@ -689,6 +737,31 @@ const Step04 = ( {
                 
                 <section className={`b2bRegistration__confirm__date__page__form flex w-100 ${handles.b2bRegistration__confirm__date__page__form}`}>
                     <section className={`b2bRegistration__confirm__date__page__form__container flex flex-column w-100 ${handles.b2bRegistration__confirm__date__page__form__container}`}>
+                        
+                        {/* stateRegistration */}
+                        <section className='mb6'>
+                            <Input id="stateRegistration"
+                                name="stateRegistration"
+                                value={stateRegistration || ''}
+                                type="text"
+                                label="Inscrição Estadual"
+                                readOnly={loadingRequest}
+                                disabled={stateRegistrationIsent}
+                                onChange={(e) => onChangeInput(e.target)}
+                                errorMessage={formInValid.stateRegistration && 'Campo obrigatório.'}/>
+
+                            <section className="pt3">
+                                <Checkbox
+                                    checked={stateRegistrationIsent}
+                                    id="stateRegistrationIsent"
+                                    label="Insento"
+                                    name="stateRegistrationFree"
+                                    onChange={() => handleChangeStateRegistrationIsent()}
+                                    value={stateRegistrationIsent}
+                                    disabled={loadingRequest}
+                                />
+                            </section>
+                        </section>
                         
                         {/* activitySector */}
                         <section className="mb6">
@@ -772,6 +845,19 @@ const Step04 = ( {
 
                 <section className={`b2bRegistration__confirm__date__page__form__contact flex flex-column w-100 ${handles.b2bRegistration__confirm__date__page__form__contact}`}>
                     <section className={`b2bRegistration__confirm__date__page__form__contact__container flex flex-column w-100 ${handles.b2bRegistration__confirm__date__page__form__contact__container}`}>
+                        
+                        {/* tradeName */}
+                        <section className='mb6'>
+                            <Input id="tradeName"
+                                name="tradeName"
+                                type="text"
+                                value={tradeNameState || ''}
+                                onChange={(e) => onChangeInput(e.target)}
+                                placeholder='Nome Fantasia'
+                                errorMessage={formInValid.tradeNameState && 'Campo obrigatório.'}
+                                readOnly={loadingRequest}/>
+                        </section>
+
                         {/* firstName */}
                         <section className='mb6'>
                             <Input id="firstName"
@@ -784,6 +870,18 @@ const Step04 = ( {
                                 readOnly={loadingRequest}/>
                         </section>
 
+                        {/* lastName */}
+                        <section className='mb6'>
+                            <Input id="lastName"
+                                name="lastName"
+                                type="text"
+                                value={lastName || ''}
+                                onChange={(e) => onChangeInput(e.target)}
+                                placeholder='Sobrenome do contato'
+                                errorMessage={formInValid.lastName && 'Campo obrigatório.'}
+                                readOnly={loadingRequest}/>
+                        </section>
+
                         {/* email */}
                         <section className='mb6'>
                             <Input id="email"
@@ -792,20 +890,20 @@ const Step04 = ( {
                                 type="email"
                                 onChange={(e) => onChangeInput(e.target)}
                                 placeholder='E-mail'
-                                errorMessage={formInValid.email && 'Campo obrigatório.'}
+                                errorMessage={formInValid.emailState && 'Campo obrigatório.'}
                                 readOnly={loadingRequest}/>
                         </section>
 
-                        {/* businessPhone */}
+                        {/* homePhone */}
                         <section className='mb6'>
-                            <Input id="businessPhone"
-                                name="businessPhone"
+                            <Input id="homePhone"
+                                name="homePhone"
                                 type="phone"
-                                value={maskPhone(businessPhone || '')}
+                                value={maskPhone(homePhone || '')}
                                 onChange={(e) => onChangeInput(e.target)}
                                 maxLength={15}
-                                placeholder='Telefone'
-                                errorMessage={formInValid.businessPhone && 'Campo obrigatório.'}
+                                placeholder='Telefone de Contato'
+                                errorMessage={formInValid.homePhone && 'Campo obrigatório.'}
                                 readOnly={loadingRequest}/>
                         </section>
 

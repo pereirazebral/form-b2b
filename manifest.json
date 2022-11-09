@@ -1,7 +1,7 @@
 {
   "vendor": "impermarketb2b",
   "name": "b2b-registration",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "builders": {
     "store": "0.x",
     "react": "3.x"
